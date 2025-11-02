@@ -1,7 +1,6 @@
 // ---- Define your dialogs  and panels here ----
 
 
-
 // ---- Display file structure ----
 
 // (recursively) makes and returns an html element (wrapped in a jquery object) for a given file object
@@ -44,6 +43,7 @@ for(let root_file of root_files) {
     $( "#filestructure" ).append( file_elem);    
 }
 
+$('.permbutton').append('Permissions')
 
 
 // make folder hierarchy into an accordion structure

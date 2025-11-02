@@ -44,11 +44,11 @@ file_permission_users = define_single_select_list('permdialog_file_user_list', f
     grouped_permissions.attr('username', selected_user)
 })
 file_permission_users.css({
-    'height':'80px',
+    'height':'130px',
 })
 
 // Make button to add a new user to the list:
-perm_add_user_select = define_new_user_select_field('perm_add_user', 'Add...', on_user_change = function(selected_user){
+perm_add_user_select = define_new_user_select_field('perm_add_user', 'Add User', on_user_change = function(selected_user){
     // console.log("add...")
     let filepath = perm_dialog.attr('filepath')
     if(selected_user && (selected_user.length > 0) && (selected_user in all_users)) { // sanity check that a user is actually selected (and exists)
@@ -355,8 +355,8 @@ $('#adv_perm_inheritance').change(function(){
         // has just been turned off - pop up dialog with add/remove/cancel
         $(`<div id="add_remove_cancel" title="Security">
             Warning: if you proceed, inheritable permissions will no longer propagate to this object.<br/>
-            - Click Add to convert and add inherited parent permissions as explicit permissions on this object<br/>
-            - Click Remove to remove inherited parent permissions from this object<br/>
+            - Click Convert to convert inherited parent permissions to explicit permissions for this file<br/>
+            - Click Remove to remove inherited parent permissions from this file<br/>
             - Click Cancel if you do not want to modify inheritance settings at this time.<br/>
         </div>`).dialog({ // TODO: don't create this dialog on the fly
             modal: true,
@@ -365,7 +365,7 @@ $('#adv_perm_inheritance').change(function(){
             position: { my: "top", at: "top", of: $('#html-loc') },
             buttons: {
                 Add: {
-                    text: "Add",
+                    text: "Convert",
                     id: "adv-inheritance-add-button",
                     click: function() {
                         let filepath = $('#advdialog').attr('filepath')
