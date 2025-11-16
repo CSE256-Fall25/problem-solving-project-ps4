@@ -153,6 +153,48 @@ perm_add_user_select.append(perm_remove_user_button) // Cheating a bit again - a
 perm_dialog.append(grouped_permissions)
 perm_dialog.append(advanced_expl_div)
 
+// ---- Permission Information Dialog ----
+let perm_info_dialog = define_new_dialog('perm_info_dialog', 'Permission Information', {
+    width: 400,
+    buttons: {
+        OK: {
+            text: "OK",
+            id: "perm-info-ok-button",
+            click: function() {
+                $(this).dialog("close");
+            }
+        }
+    }
+})
+
+// Permission group explanations
+const permission_explanations = {
+    'Read': 'Allows users to view files and see what files are in folders.',
+    'Write': 'Allows users to create new files and make changes to existing files.',
+    'Read_and_execute': 'Allows users to view and open files, and run program files.',
+    'Modify': 'Allows users to view, change, add, and delete files.',
+    'List_folder_contents': 'Allows users to see the names of files and subfolders in a folder.',
+    'Full_control': 'Allows users to do anything with the files, including changing who else can access them.',
+    'Special_permissions': 'Custom permission settings. Click Advanced to view details.'
+}
+
+// Add click handler for info icons
+$(document).on('click', '.perm-info-icon', function(e) {
+    e.stopPropagation();
+    let permGroup = $(this).attr('data-permission-group');
+    let explanation = permission_explanations[permGroup] || 'No information available.';
+    
+    perm_info_dialog.html(`<p style="margin: 15px 0;">${explanation}</p>`);
+    perm_info_dialog.dialog('open');
+    
+    // Emit click event for logging
+    emitter.dispatchEvent(new CustomEvent('userEvent', { 
+        detail: new ClickEntry(ActionEnum.CLICK, (e.clientX + window.pageXOffset), (e.clientY + window.pageYOffset), 
+        `perm_info_icon_${permGroup}`, new Date().getTime()) 
+    }));
+});
+
+
 // --- Additional logic for reloading contents when needed: ---
 //Define an observer which will propagate perm_dialog's filepath attribute to all the relevant elements, whenever it changes:
 define_attribute_observer(perm_dialog, 'filepath', function(){

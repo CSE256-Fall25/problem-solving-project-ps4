@@ -215,6 +215,7 @@ function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
             </th>
             <th id="${id_prefix}_header_allow">Allow</th>
             <th id="${id_prefix}_header_deny">Deny</th>
+            <th id="${id_prefix}_header_source" class="perm-source-header" width="50px">Source</th>
         </tr>
     </table>
     `)
@@ -225,13 +226,20 @@ function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
     // For each permissions group, create a row:
     for(let g of which_groups){
         let row = $(`<tr id="${id_prefix}_row_${g}">
-            <td id="${id_prefix}_${g}_name">${g}</td>
+            <td id="${id_prefix}_${g}_name">${g}
+            <span class="perm-info-icon" data-permission-group="${g}" style="margin-left: 8px; cursor: pointer; color: #0066cc; font-weight: bold;" title="Click for more information">ⓘ</span>
+            </td>
         </tr>`)
         for(let ace_type of ['allow', 'deny']) {
             row.append(`<td id="${id_prefix}_${g}_${ace_type}_cell">
                 <input type="checkbox" id="${id_prefix}_${g}_${ace_type}_checkbox" ptype="${ace_type}" class="groupcheckbox" group="${g}" ></input>
             </td>`)
         }
+        // Add new Source column cell:
+        row.append(`<td id="${id_prefix}_${g}_source_cell" class="perm-source-cell">
+            <span id="${id_prefix}_${g}_source_text" class="perm-source-text"></span>
+        </td>`)
+        
         group_table.append(row)
     }  
 
@@ -252,6 +260,9 @@ function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
             group_table.find('.groupcheckbox').prop('disabled', false)
             group_table.find('.groupcheckbox').prop('checked', false)
             group_table.find('.groupcheckbox[group="Special_permissions"]').prop('disabled', true) // special_permissions is always disabled
+            
+            // clear previous source text:
+            group_table.find('.perm-source-text').text('').removeClass('perm-source-explicit perm-source-inherited')
 
             // change name on table:
             $(`#${id_prefix}_header_username`).text(username)
@@ -263,9 +274,15 @@ function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
                 for(allowed_group in grouped_perms[ace_type]) {
                     let checkbox = group_table.find(`#${id_prefix}_${allowed_group}_${ace_type}_checkbox`)
                     checkbox.prop('checked', true)
+                    
+                    // Update source column text
+                    let sourceText = group_table.find(`#${id_prefix}_${allowed_group}_source_text`)
                     if(grouped_perms[ace_type][allowed_group].inherited) {
                         // can't uncheck inherited permissions.
                         checkbox.prop('disabled', true)
+                        sourceText.text('Inherited from parent folder').addClass('perm-source-inherited')
+                    } else {
+                        sourceText.text('Explicit').addClass('perm-source-explicit')
                     }
 
                 }
@@ -275,6 +292,7 @@ function define_grouped_permission_checkboxes(id_prefix, which_groups = null) {
             // can't get permissions for this username/filepath - reset everything into a blank state
             group_table.find('.groupcheckbox').prop('disabled', true)
             group_table.find('.groupcheckbox').prop('checked', false)
+            group_table.find('.perm-source-text').text('').removeClass('perm-source-explicit perm-source-inherited')
             $(`#${id_prefix}_header_username`).text('')
         }
 
@@ -517,7 +535,62 @@ function get_explanation_text(explanation) {
 //---- some universal HTML set-up so you don't have to do it in each wrapper.html ----
 $('#filestructure').css({
     'display':'inline-block',
-    'width':'49%',
+    'width':'52%',
     'vertical-align': 'top'
 })
 $('#filestructure').after('<div id="sidepanel" style="display:inline-block;width:49%"></div>')
+
+// Add Quick Reference table below file structure
+$('#filestructure').after(`
+<div id="quick-reference" style="width: 60%; margin: 20px; clear: both;">
+    <h2 style="color: #0066cc; margin-bottom: 10px; font-size: 24px;">Quick Reference</h2>
+        <div style="background-color: #fffacd; padding: 15px; margin-top: 15px; border: 1px solid #000;">
+        <h3 style="margin-top: 0; font-size: 18px;">Tips:</h3>
+        <ul style="margin: 10px 0; padding-left: 25px;">
+            <li style="margin-bottom: 8px; color: #ee4337ff;"><strong>Checking "Deny" will override an "Allow" that is checked off so do not worry if you cannot uncheck and inherited "Allow"</strong></li>
+            <li style="margin-bottom: 8px;"><strong>To remove a user completely:</strong> Use the "Remove" button</li>
+            <li style="margin-bottom: 8px;">Users can still be added individually even if part of a group.</li>
+            <li style="margin-bottom: 8px;"><strong>If stuck:</strong> Click "Advanced" to see detailed permission settings and inheritance status</li>
+        </ul>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; border: 2px solid #000;">
+        <thead>
+            <tr style="background-color: #f0f0f0;">
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; font-weight: bold;">Term</th>
+                <th style="border: 1px solid #000; padding: 8px; text-align: left; font-weight: bold;">What It Means</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">Explicit</td>
+                <td style="border: 1px solid #000; padding: 8px;">Permission is set directly on this file. You can freely change it.</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">"Inherited from parent folder"</td>
+                <td style="border: 1px solid #000; padding: 8px;">Permission comes from the parent folder. To remove it, uncheck the box (this will turn off inheritance).</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">Read</td>
+                <td style="border: 1px solid #000; padding: 8px;">View files only</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">Write</td>
+                <td style="border: 1px solid #000; padding: 8px;">Create and modify files (no delete)</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">Modify</td>
+                <td style="border: 1px solid #000; padding: 8px;">Read, write, and change files (no delete or permission changes)</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">Full Control</td>
+                <td style="border: 1px solid #000; padding: 8px;">Can do everything including delete and change permissions</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #000; padding: 8px; font-weight: bold;">Advanced Controls</td>
+                <td style="border: 1px solid #000; padding: 8px;">View detailed permissions, turn inheritance on/off, and see file ownership</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+`)

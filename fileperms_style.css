@@ -36,3 +36,17 @@
 .no-close .ui-dialog-titlebar-close {
     display: none;
 }
+
+/* Source column styling */
+.perm-source-explicit {
+    color: #888888;
+}
+
+.perm-source-inherited {
+    color: #0066cc;
+}
+
+.perm-source-cell {
+    text-align: center;
+    width: 200px;
+}
